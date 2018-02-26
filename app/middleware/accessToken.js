@@ -47,13 +47,11 @@ module.exports = opts => {
 
     yield next;
 
-    if (accessData && accessData.requireSave) {
-      yield redis.set(accessToken, accessData.toJSON());
-    }
+    yield this.saveAccessData(this.accessData);
 
     // key alive.
     if (keepActive) {
-      yield this.activeAccessData(accessToken);
+      yield this.activeAccessData(this.accessData);
     }
   };
 };

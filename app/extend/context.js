@@ -4,6 +4,8 @@
 
 'use strict';
 
+const crypto = require('crypto');
+const uuid = require('uuid');
 const ms = require('ms');
 
 class AccessData {
@@ -11,9 +13,25 @@ class AccessData {
  constructor(ctx, props) {
    this._ctx = ctx;
 
-   for (const k in obj) {
-     this[k] = obj[k];
+   for (const k in props) {
+     this[k] = props[k];
    }
+
+   this.clientMac = getClientMac(ctx);
+   this.random = uuid();
+   const timeStamp = new Date().getTime();
+
+   this.createAt = timeStamp;
+   this.updateAt = timeStamp;
+
+   const hashContent = {
+     id: this.id,
+     clientMac: this.clientMac,
+     random: this.random,
+     createAt: this.createAt,
+   };
+
+   this.accessToken = crypto.createHash('md5').update(JSON.stringify(hashContent)).digest('hex');
  }
 
  toJSON() {
@@ -37,19 +55,28 @@ class AccessData {
   }
 
   save() {
+    this.updateAt = new Date().getTime();
     this._requireSave = true;
   }
 }
 
 const __ACCESS_DATA__ = Symbol('__ACCESS_DATA__');
 
+function getClientMac(ctx) {
+  const request = ctx.request;
+
+  const clientMacContent = request.ips.join('|') + ':' + ctx.get('user-agent');
+  const clientMac = crypto.createHash('md5').update(clientMacContent).digest('hex');
+  return clientMac;
+}
+
 module.exports = {
 
   * isClientMacChanged(accessData) {
-    const { logger, redis, request, app } = this;
+    const { logger } = this;
 
     //当前请求clientMac
-    const clientMac = request.ips.join('|');//crypto.createHash('md5').update().digest('hex');
+    const clientMac = getClientMac(this);
     if (clientMac !== accessData.clientMac) {
       logger.info(`请求的 accessToken 的 clientMac 发生变化 之前 ${accessData.clientMac} 现在 ${clientMac}`);
       return false;
@@ -58,8 +85,28 @@ module.exports = {
     return true;
   },
 
-  * createAccessData(props) {
-    return new AccessData(this, props);
+  * createAccessData(props, maxAge) {
+    const { logger, redis } = this;
+
+    if (maxAge !== undefined) {
+      maxAge = ms(this.app.config.accessTokenMaxAge);
+    }
+
+    const accessData = new AccessData(this, props);
+
+    yield redis.set(accessData.accessToken, accessData.toJSON(), 'EX', maxAge * 0.001);
+
+    this.accessData = accessData;
+
+    logger.info(`redis 创建 accessData ( ${accessData.id} )数据 accessToken: ${accessData.accessToken}`);
+  },
+
+  * saveAccessData(accessData) {
+    accessData = accessData || this.accessData;
+
+    if (accessData && accessData.requireSave) {
+      yield redis.set(accessToken, accessData.toJSON());
+    }
   },
 
   * activeAccessData(accessToken, maxAge) {
@@ -71,7 +118,7 @@ module.exports = {
       maxAge = ms(this.app.config.accessTokenMaxAge);
     }
 
-    yield redis.expire(accessToken, maxAge);
+    yield redis.expire(accessToken, maxAge * 0.001);
   },
 
   * findAccessData(accessToken) {
