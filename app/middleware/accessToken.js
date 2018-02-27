@@ -34,11 +34,13 @@ module.exports = opts => {
     // 有access-token
     const accessData = yield* this.findAccessData(accessToken);
     if (!accessData) {
+      logger.info(`access-token: ${accessToken} 已经失效！`);
       this.formatFailResp({errCode: 'F401'});
       return;
     }
 
     if (this.isClientMacChanged()) {
+      logger.info(`access-token: ${accessToken} 对应的环境发生变化！`);
       this.formatFailResp({errCode: 'F401'});
       return;
     }
