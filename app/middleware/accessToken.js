@@ -43,7 +43,7 @@ module.exports = opts => {
       return;
     }
 
-    this.accessData = accessData;
+    this.accessData = request.accessData = accessData;
 
     yield next;
 
