@@ -60,8 +60,6 @@ class AccessData {
   }
 }
 
-const __ACCESS_DATA__ = Symbol('__ACCESS_DATA__');
-
 function getClientMac(ctx) {
   const request = ctx.request;
 
