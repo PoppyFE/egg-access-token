@@ -89,7 +89,7 @@ module.exports = {
     const { logger, redis } = this;
 
     if (maxAge !== undefined) {
-      maxAge = ms(this.app.config.accessTokenMaxAge);
+      maxAge = ms(this.app.config.accessToken.maxAge);
     }
 
     const accessData = new AccessData(this, props);
@@ -115,7 +115,7 @@ module.exports = {
     if (!accessToken) return;
 
     if (maxAge !== undefined) {
-      maxAge = ms(this.app.config.accessTokenMaxAge);
+      maxAge = ms(this.app.config.accessToken.maxAge);
     }
 
     yield redis.expire(accessToken, maxAge * 0.001);

@@ -1,5 +1,5 @@
 'use strict';
 
 module.exports.accessToken = {
-  accessTokenMaxAge: '10m'
+  maxAge: '10m'
 };
