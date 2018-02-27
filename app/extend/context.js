@@ -96,9 +96,9 @@ module.exports = {
 
     yield redis.set(accessData.accessToken, accessData.toJSON(), 'EX', maxAge * 0.001);
 
-    this.accessData = accessData;
-
     logger.info(`redis 创建 accessData ( ${accessData.id} )数据 accessToken: ${accessData.accessToken}`);
+
+    return accessData;
   },
 
   * saveAccessData(accessData) {
