@@ -18,7 +18,11 @@ class AccessData {
    }
 
    if (!this.id) {
-     throw new Error('AuthData id is empty!');
+     throw new Error('AccessData id is empty!');
+   }
+
+   if (!this.maxAge) {
+     throw new Error('AccessData maxAge is empty!');
    }
 
    this.clientMac = getClientMac(ctx);
@@ -90,13 +94,15 @@ module.exports = {
   * createAccessData(props, maxAge) {
     const { logger, redis } = this;
 
+    props.maxAge = props.maxAge || maxAge || ms(this.app.config.accessToken.maxAge);
+
     if (maxAge !== undefined) {
       maxAge = ms(this.app.config.accessToken.maxAge);
     }
 
     const accessData = new AccessData(this, props);
 
-    yield redis.set(accessData.accessToken, accessData.toJSON(), 'EX', maxAge * 0.001);
+    yield redis.set(accessData.accessToken, accessData.toJSON(), 'EX', props.maxAge * 0.001);
 
     logger.info(`redis 创建 accessData ( ${accessData.id} )数据 accessToken: ${accessData.accessToken}`);
 
