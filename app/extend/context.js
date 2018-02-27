@@ -17,6 +17,10 @@ class AccessData {
      this[k] = props[k];
    }
 
+   if (!this.id) {
+     throw new Error('AuthData id is empty!');
+   }
+
    this.clientMac = getClientMac(ctx);
    this.random = uuid();
    const timeStamp = new Date().getTime();
