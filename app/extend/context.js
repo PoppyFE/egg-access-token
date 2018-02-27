@@ -180,7 +180,7 @@ module.exports = {
   * destroyAccessData(accessToken) {
     const { logger, redis } = this;
 
-    if (!accessToken) return [];
+    if (!accessToken) return;
 
     yield redis.del(accessToken);
 
