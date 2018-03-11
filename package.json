@@ -1,6 +1,6 @@
 {
   "name": "egg-access-token",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "",
   "eggPlugin": {
     "name": "accessToken"
