@@ -71,14 +71,22 @@ class AccessData {
 function getClientMac(ctx) {
   const request = ctx.request;
 
-  const clientMacContent = request.ips.join('|') + ':' + ctx.get('user-agent');
+  let ipAddress = '';
+  if (config.limitRequest.ipEnable) {
+    ipAddress = (ctx.ips && ctx.ips.length ? ctx.ips.join('-') : undefined) || ctx.ip || '';
+  }
+
+  const userAgent = ctx.get('user-agent') || '';
+  const deviceUUID = request.headers['device-uuid'] || '';
+
+  const clientMacContent = `${ipAddress}:${userAgent}:${deviceUUID}`;
   const clientMac = crypto.createHash('md5').update(clientMacContent).digest('hex');
   return clientMac;
 }
 
 module.exports = {
 
-  * isClientMacChanged(accessData) {
+  async isClientMacChanged(accessData) {
     const { logger } = this;
 
     //当前请求clientMac
@@ -91,7 +99,7 @@ module.exports = {
     return true;
   },
 
-  * createAccessData(props, maxAge) {
+  async createAccessData(props, maxAge) {
     const { logger, redis } = this;
 
     props.maxAge = props.maxAge || maxAge || ms(this.app.config.accessToken.maxAge);
@@ -102,22 +110,23 @@ module.exports = {
 
     const accessData = new AccessData(this, props);
 
-    yield redis.set(accessData.accessToken, accessData.toJSON(), 'EX', props.maxAge * 0.001);
+    await redis.set(accessData.accessToken, accessData.toJSON(), 'EX', props.maxAge * 0.001);
 
     logger.info(`redis 创建 accessData ( ${accessData.id} )数据 accessToken: ${accessData.accessToken}`);
 
     return accessData;
   },
 
-  * saveAccessData(accessData) {
+  async saveAccessData(accessData) {
+    const { redis } = this;
     accessData = accessData || this.accessData;
 
     if (accessData && accessData.requireSave) {
-      yield redis.set(accessToken, accessData.toJSON());
+      await redis.set(accessData.accessToken, accessData.toJSON());
     }
   },
 
-  * activeAccessData(accessToken, maxAge) {
+  async activeAccessData(accessToken, maxAge) {
     const { redis } = this;
 
     if (!accessToken) return;
@@ -126,15 +135,15 @@ module.exports = {
       maxAge = ms(this.app.config.accessToken.maxAge);
     }
 
-    yield redis.expire(accessToken, maxAge * 0.001);
+    await redis.expire(accessToken, maxAge * 0.001);
   },
 
-  * findAccessData(accessToken) {
+  async findAccessData(accessToken) {
     const { logger, redis } = this;
 
     if (!accessToken) return;
 
-    const accessDataStr = yield redis.get(accessToken);
+    const accessDataStr = await redis.get(accessToken);
     if (!accessDataStr) {
       logger.info(`redis 获取 accessData 数据 accessToken: ${accessToken} 失败 不存在!`);
       return;
@@ -156,18 +165,18 @@ module.exports = {
     return new AccessData(this, accessData);
   },
 
-  * findAccessDatasByUserId(id) {
+  async findAccessDatasByUserId(id) {
     const { redis } = this;
 
     const results = [];
 
     if (!id) return results;
 
-    const keys = yield redis.keys(id + ':ses:*');
+    const keys = await redis.keys(id + ':ses:*');
     if (!keys || keys.length === 0) return results;
 
     for(let i = 0 ; i < keys.length; i++) {
-      const accessData = yield* this.findAccessData(keys[i]);
+      const accessData = await this.findAccessData(keys[i]);
       if (accessData) {
         results.push(accessData)
       }
@@ -176,35 +185,35 @@ module.exports = {
     return results;
   },
 
-  * accessTokensByUserId(id) {
+  async accessTokensByUserId(id) {
     const { redis } = this;
 
     if (!id) return [];
 
-    const keys = yield redis.keys(id + ':ses:*');
+    const keys = await redis.keys(id + ':ses:*');
     return keys || [];
   },
 
-  * destroyAccessData(accessToken) {
+  async destroyAccessData(accessToken) {
     const { logger, redis } = this;
 
     if (!accessToken) return;
 
-    yield redis.del(accessToken);
+    await redis.del(accessToken);
 
     logger.info(`删除 accessToken: ${accessToken} !`);
   },
 
-  * destroyAccessDatasByUserId(id) {
+  async destroyAccessDatasByUserId(id) {
     const { logger, redis } = this;
 
     if (!id) return;
 
-    const keys = yield redis.keys(id + ':ses:*');
+    const keys = await redis.keys(id + ':ses:*');
     if (!keys || keys.length === 0) return;
 
     for(let i = 0 ; i < keys.length; i++) {
-      yield redis.del([keys[i]]);
+      await redis.del([keys[i]]);
     }
 
     logger.info(`删除 accessTokens: ${keys.join(',')} !`);

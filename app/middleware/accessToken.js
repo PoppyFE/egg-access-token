@@ -14,46 +14,46 @@ module.exports = opts => {
     keepActive = !!opts.keepActive;
   }
 
-  return function* (next) {
-    const { logger, redis, request, query } = this;
+  return async function (ctx, next) {
+    const { logger, request, query } = ctx;
     // access-token 优先headers 然后query
     const accessToken = request.headers['access-token'] || query['access-token'];
 
     if (force && !accessToken) {
       logger.info('access-token 未设置！');
-      this.formatFailResp({errCode: 'F401'});
+      ctx.formatFailResp({errCode: 'F401'});
       return;
     }
 
     // 没有accessToken
     if (!accessToken)  {
-      yield next;
+      await next();
       return;
     }
 
     // 有access-token
-    const accessData = yield* this.findAccessData(accessToken);
+    const accessData = await ctx.findAccessData(accessToken);
     if (!accessData) {
       logger.info(`access-token: ${accessToken} 已经失效！`);
-      this.formatFailResp({errCode: 'F401'});
+      ctx.formatFailResp({errCode: 'F401'});
       return;
     }
 
-    if (this.isClientMacChanged()) {
+    if (ctx.isClientMacChanged()) {
       logger.info(`access-token: ${accessToken} 对应的环境发生变化！`);
-      this.formatFailResp({errCode: 'F401'});
+      ctx.formatFailResp({errCode: 'F401'});
       return;
     }
 
-    this.accessData = request.accessData = accessData;
+    ctx.accessData = request.accessData = accessData;
 
-    yield next;
+    await next();
 
-    yield this.saveAccessData(this.accessData);
+    await ctx.saveAccessData(this.accessData);
 
     // key alive.
     if (keepActive) {
-      yield this.activeAccessData(this.accessData);
+      await ctx.activeAccessData(this.accessData);
     }
   };
 };
