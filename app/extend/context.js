@@ -71,13 +71,14 @@ class AccessData {
 function getClientMac(ctx) {
   const request = ctx.request;
 
+  const deviceUUID = request.headers['device-uuid'] || '';
+
   let ipAddress = '';
-  if (config.limitRequest.ipEnable) {
+  if (!deviceUUID && config.limitRequest.ipEnable) {
     ipAddress = (ctx.ips && ctx.ips.length ? ctx.ips.join('-') : undefined) || ctx.ip || '';
   }
 
   const userAgent = ctx.get('user-agent') || '';
-  const deviceUUID = request.headers['device-uuid'] || '';
 
   const clientMacContent = `${ipAddress}:${userAgent}:${deviceUUID}`;
   const clientMac = crypto.createHash('md5').update(clientMacContent).digest('hex');
