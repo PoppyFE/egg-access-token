@@ -113,7 +113,7 @@ module.exports = {
 
     await redis.set(accessData.accessToken, accessData.toJSON(), 'EX', props.maxAge * 0.001);
 
-    logger.info(`redis 创建 accessData ( ${accessData.id} )数据 accessToken: ${accessData.accessToken}`);
+    logger.info(`redis 创建 accessData ( ${accessData.id} )数据 accessToken: ${accessData.accessToken} 有效期 ${props.maxAge}`);
 
     return accessData;
   },
