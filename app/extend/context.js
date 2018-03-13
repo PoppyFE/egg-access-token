@@ -100,7 +100,8 @@ module.exports = {
   },
 
   async createAccessData(props, maxAge) {
-    const { logger, redis } = this;
+    const { logger, app } = this;
+    const { redis } = app;
 
     props.maxAge = props.maxAge || maxAge || ms(this.app.config.accessToken.maxAge);
 
@@ -118,7 +119,9 @@ module.exports = {
   },
 
   async saveAccessData(accessData) {
-    const { redis } = this;
+    const { app } = this;
+    const { redis } = app;
+
     accessData = accessData || this.accessData;
 
     if (accessData && accessData.requireSave) {
@@ -127,7 +130,8 @@ module.exports = {
   },
 
   async activeAccessData(accessToken, maxAge) {
-    const { redis } = this;
+    const { app } = this;
+    const { redis } = app;
 
     if (!accessToken) return;
 
@@ -139,7 +143,8 @@ module.exports = {
   },
 
   async findAccessData(accessToken) {
-    const { logger, redis } = this;
+    const { logger, app } = this;
+    const { redis } = app;
 
     if (!accessToken) return;
 
@@ -166,7 +171,8 @@ module.exports = {
   },
 
   async findAccessDatasByUserId(id) {
-    const { redis } = this;
+    const { app } = this;
+    const { redis } = app;
 
     const results = [];
 
@@ -186,7 +192,8 @@ module.exports = {
   },
 
   async accessTokensByUserId(id) {
-    const { redis } = this;
+    const { app } = this;
+    const { redis } = app;
 
     if (!id) return [];
 
@@ -205,7 +212,8 @@ module.exports = {
   },
 
   async destroyAccessDatasByUserId(id) {
-    const { logger, redis } = this;
+    const { logger, app } = this;
+    const { redis } = app;
 
     if (!id) return;
 
