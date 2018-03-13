@@ -1,6 +1,6 @@
 {
   "name": "egg-access-token",
-  "version": "1.0.11",
+  "version": "1.0.12",
   "description": "",
   "eggPlugin": {
     "name": "accessToken"
@@ -41,7 +41,8 @@
   "files": [
     "app.js",
     "agent.js",
-    "config"
+    "config",
+    "app"
   ],
   "ci": {
     "version": "8, 9"

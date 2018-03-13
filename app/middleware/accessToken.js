@@ -49,11 +49,11 @@ module.exports = opts => {
 
     await next();
 
-    await ctx.saveAccessData(this.accessData);
+    await ctx.saveAccessData(ctx.accessData);
 
     // key alive.
     if (keepActive) {
-      await ctx.activeAccessData(this.accessData);
+      await ctx.activeAccessData(ctx.accessData);
     }
   };
 };
