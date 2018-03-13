@@ -81,8 +81,7 @@ function getClientMac(ctx) {
   const userAgent = ctx.get('user-agent') || '';
 
   const clientMacContent = `${ipAddress}:${userAgent}:${deviceUUID}`;
-  const clientMac = crypto.createHash('md5').update(clientMacContent).digest('hex');
-  return clientMac;
+  return crypto.createHash('md5').update(clientMacContent).digest('hex');
 }
 
 module.exports = {

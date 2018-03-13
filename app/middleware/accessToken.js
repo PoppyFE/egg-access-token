@@ -21,7 +21,7 @@ module.exports = opts => {
 
     if (force && !accessToken) {
       logger.info('access-token 未设置！');
-      ctx.formatFailResp({errCode: 'F401'});
+      ctx.formatFailResp({errCode: 'F403'});
       return;
     }
 
@@ -41,7 +41,7 @@ module.exports = opts => {
 
     if (ctx.isClientMacChanged()) {
       logger.info(`access-token: ${accessToken} 对应的环境发生变化！`);
-      ctx.formatFailResp({errCode: 'F401'});
+      ctx.formatFailResp({errCode: 'F403'});
       return;
     }
 
