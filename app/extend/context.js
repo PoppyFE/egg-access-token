@@ -29,8 +29,12 @@ class AccessData {
    this.random = uuid();
    const timeStamp = new Date().getTime();
 
+   this.ip = ctx.ip;
    this.createAt = timeStamp;
    this.updateAt = timeStamp;
+
+   this.isDead = false;
+   this.message = undefined;
 
    const hashContent = {
      id: this.id,
@@ -47,6 +51,7 @@ class AccessData {
    Object.keys(this).forEach(key => {
      if (typeof key !== 'string') return;
      if (key[0] === '_') return;
+     if (this[key] === undefined) return;
 
      obj[key] = this[key];
    });
@@ -125,7 +130,7 @@ module.exports = {
     accessData = accessData || this.accessData;
 
     if (accessData && accessData.requireSave) {
-      await redis.set(accessData.accessToken, accessData.toJSON());
+      await redis.set(accessData.accessToken, JSON.stringify(accessData.toJSON()));
     }
   },
 

@@ -39,11 +39,20 @@ module.exports = opts => {
       return;
     }
 
+    if (accessData.isDead) {
+      logger.info(`access-token: ${accessToken} 即将失效！${accessData.message}`);
+      ctx.formatFailResp({errCode: 'F401', msg: accessData.message});
+      await ctx.destroyAccessData(accessData.accessToken);
+      return;
+    }
+
     if (ctx.isClientMacChanged()) {
       logger.info(`access-token: ${accessToken} 对应的环境发生变化！`);
       ctx.formatFailResp({errCode: 'F403'});
       return;
     }
+
+    if (accessData._)
 
     ctx.accessData = request.accessData = accessData;
 
