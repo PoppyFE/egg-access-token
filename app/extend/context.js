@@ -82,13 +82,38 @@ class AccessData {
     return Object.keys(this.toJSON()).length;
   }
 
-  get requireSave() {
-    return !!this._requireSave;
+  isClientMacChanged() {
+    const { logger } = this._ctx;
+    const envClientMac = getClientMac(this._ctx);
+    if (envClientMac !== this.clientMac) {
+      return true;
+    }
+
+    return false;
   }
 
-  save() {
+  flush() {
     this.updateAt = new Date().getTime();
-    this._requireSave = true;
+    this._dataDirty = true;
+  }
+
+  async save(force) {
+    if (!force && !this._dataDirty) {
+      return;
+    }
+
+    const { logger } = this._ctx;
+    const { redis } = this._ctx.app;
+
+
+    await redis.set(this.accessToken, JSON.stringify(this.toJSON()), 'EX', this.maxAge * 0.001);
+    logger.info(`redis 创建 accessData ( ${this.id} )数据 accessToken: ${this.accessToken} 有效期 ${this.maxAge}`);
+    this._dataDirty = true;
+  }
+
+  async active() {
+    const { redis } = this._ctx.app;
+    await redis.expire(this.accessToken, this.maxAge * 0.001);
   }
 }
 
@@ -110,19 +135,6 @@ function getClientMac(ctx) {
 
 module.exports = {
 
-  async isClientMacChanged(accessData) {
-    const { logger } = this;
-
-    //当前请求clientMac
-    const clientMac = getClientMac(this);
-    if (clientMac !== accessData.clientMac) {
-      logger.info(`请求的 accessToken 的 clientMac 发生变化 之前 ${accessData.clientMac} 现在 ${clientMac}`);
-      return false;
-    }
-
-    return true;
-  },
-
   async createAccessData(props, maxAge) {
     const { logger, app } = this;
     const { redis } = app;
@@ -130,38 +142,8 @@ module.exports = {
     props.maxAge = ms(props.maxAge || maxAge || this.app.config.accessToken.maxAge);
 
     const accessData = new AccessData(this, props);
-
-    await redis.set(accessData.accessToken, JSON.stringify(accessData.toJSON()), 'EX', accessData.maxAge * 0.001);
-
-    logger.info(`redis 创建 accessData ( ${accessData.id} )数据 accessToken: ${accessData.accessToken} 有效期 ${accessData.maxAge}`);
-
+    await accessData.save(true);
     return accessData;
-  },
-
-  async saveAccessData(accessData, maxAge) {
-    const { app } = this;
-    const { redis } = app;
-
-    accessData = accessData || this.accessData;
-    if (!accessData) return;
-
-    if (maxAge !== undefined) {
-      accessData._requireSave = true;
-      accessData.maxAge = ms(maxAge);
-    }
-
-    if (accessData._requireSave) {
-      await redis.set(accessData.accessToken, JSON.stringify(accessData.toJSON()), 'EX', accessData.maxAge * 0.001);
-    }
-  },
-
-  async activeAccessData(accessToken, maxAge) {
-    const { app } = this;
-    const { redis } = app;
-
-    if (!accessToken) return;
-    maxAge = ms(maxAge || this.app.config.accessToken.maxAge || '5s');
-    await redis.expire(accessToken, maxAge * 0.001);
   },
 
   async findAccessData(accessToken) {
@@ -239,7 +221,8 @@ module.exports = {
   },
 
   async destroyAccessData(accessToken) {
-    const { logger, redis } = this;
+    const { logger, app } = this;
+    const { redis } = app;
 
     if (!accessToken) return;
 

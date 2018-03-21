@@ -32,21 +32,21 @@ module.exports = opts => {
     }
 
     // 有access-token
-    const accessData = await ctx.findAccessData(accessToken);
+    let accessData = await ctx.findAccessData(accessToken);
     if (!accessData) {
       logger.info(`access-token: ${accessToken} 已经失效！`);
       ctx.formatFailResp({errCode: 'F401'});
       return;
     }
 
-    if (accessData.isDead) {
+    if (accessData.isDead) { // 这里是个即将删除的token
       logger.info(`access-token: ${accessToken} 即将失效！${accessData.message}`);
       ctx.formatFailResp({errCode: 'F401', msg: accessData.message});
       await ctx.destroyAccessData(accessData.accessToken);
       return;
     }
 
-    if (ctx.isClientMacChanged()) {
+    if (accessData.isClientMacChanged()) { // 这里可能是盗用 token
       logger.info(`access-token: ${accessToken} 对应的环境发生变化！`);
       ctx.formatFailResp({errCode: 'F403'});
       return;
@@ -56,11 +56,17 @@ module.exports = opts => {
 
     await next();
 
-    await ctx.saveAccessData(ctx.accessData);
+    accessData = ctx.accessData || request.accessData;
+
+    if (!accessData) {
+      return;
+    }
+
+    await accessData.save();
 
     // key alive.
     if (keepActive) {
-      await ctx.activeAccessData(ctx.accessData);
+      accessData.active();
     }
   };
 };
