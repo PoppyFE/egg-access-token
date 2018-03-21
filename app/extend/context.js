@@ -10,61 +10,61 @@ const ms = require('ms');
 
 class AccessData {
 
- constructor(ctx, props) {
-   this._ctx = ctx;
+  constructor(ctx, props) {
+    this._ctx = ctx;
 
-   for (const k in props) {
-     this[k] = props[k];
-   }
+    for (const k in props) {
+      this[k] = props[k];
+    }
 
-   if (!this.id) {
-     throw new Error('AccessData id is empty!');
-   }
+    if (!this.id) {
+      throw new Error('AccessData id is empty!');
+    }
 
-   if (!this.maxAge) {
-     throw new Error('AccessData maxAge is empty!');
-   }
+    if (!this.maxAge) {
+      throw new Error('AccessData maxAge is empty!');
+    }
 
-   this.clientMac = getClientMac(ctx);
-   this.random = uuid();
-   const timeStamp = new Date().getTime();
+    this.clientMac = getClientMac(ctx);
+    this.random = uuid();
+    const timeStamp = new Date().getTime();
 
-   this.ip = ctx.ip;
-   this.createAt = timeStamp;
-   this.updateAt = timeStamp;
+    this.ip = ctx.ip;
+    this.createAt = timeStamp;
+    this.updateAt = timeStamp;
 
-   this.isDead = false;
-   this.message = undefined;
+    this.isDead = false;
+    this.message = undefined;
 
-   const hashContent = {
-     id: this.id,
-     clientMac: this.clientMac,
-     random: this.random,
-     createAt: this.createAt,
-   };
+    const hashContent = {
+      id: this.id,
+      clientMac: this.clientMac,
+      random: this.random,
+      createAt: this.createAt,
+    };
 
-   this.accessToken = 'acst:' + this.id + ':' +crypto.createHash('md5').update(JSON.stringify(hashContent)).digest('hex');
- }
+    this.accessToken = 'acst:' + this.id + ':' +crypto.createHash('md5').update(JSON.stringify(hashContent)).digest('hex');
+  }
 
- toJSON() {
-   const obj = {};
-   Object.keys(this).forEach(key => {
-     if (typeof key !== 'string') return;
-     if (key[0] === '_') return;
-     if (this[key] === undefined) return;
+  toJSON() {
+    const obj = {};
+    Object.keys(this).forEach(key => {
+      if (typeof key !== 'string') return;
+      if (key[0] === '_') return;
+      if (this[key] === undefined) return;
 
-     obj[key] = this[key];
-   });
+      obj[key] = this[key];
+    });
 
-   return obj;
- }
+    return obj;
+  }
 
   get length() {
     return Object.keys(this.toJSON()).length;
   }
 
   get requireSave() {
-   return !!this._requireSave;
+    return !!this._requireSave;
   }
 
   save() {
@@ -182,8 +182,14 @@ module.exports = {
     if (!id) return results;
 
     // https://github.com/luin/ioredis/issues/254
-    const keys = await redis.keys(`${this.app.config.redis.client.keyPrefix}acst:${id}:*`);
+    const prefix = this.app.config.redis.client.keyPrefix;
+    const prefixLen = prefix.length;
+    let keys = await redis.keys(`${prefix}acst:${id}:*`);
     if (!keys || keys.length === 0) return results;
+
+    keys = keys.map(key => {
+      return key.substring(prefixLen);
+    });
 
     for(let i = 0 ; i < keys.length; i++) {
       const accessData = await this.findAccessData(keys[i]);
@@ -201,8 +207,16 @@ module.exports = {
 
     if (!id) return [];
 
-    const keys = await redis.keys(`acst:${id}:*`);
-    return keys || [];
+    const prefix = this.app.config.redis.client.keyPrefix;
+    const prefixLen = prefix.length;
+    let keys = await redis.keys(`${prefix}acst:${id}:*`);
+    if (!keys || keys.length === 0) return [];
+
+    keys = keys.map(key => {
+      return key.substring(prefixLen);
+    });
+
+    return keys;
   },
 
   async destroyAccessData(accessToken) {
@@ -221,8 +235,14 @@ module.exports = {
 
     if (!id) return;
 
-    const keys = await redis.keys(`acst:${id}:*`);
+    const prefix = this.app.config.redis.client.keyPrefix;
+    const prefixLen = prefix.length;
+    const keys = await redis.keys(`${prefix}acst:${id}:*`);
     if (!keys || keys.length === 0) return;
+
+    keys = keys.map(key => {
+      return key.substring(prefixLen);
+    });
 
     for(let i = 0 ; i < keys.length; i++) {
       await redis.del([keys[i]]);
