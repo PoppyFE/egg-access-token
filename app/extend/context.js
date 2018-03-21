@@ -149,7 +149,7 @@ module.exports = {
     const { logger, app } = this;
     const { redis } = app;
 
-    if (!accessToken || accessToken.startsWith('acst')) return;
+    if (!accessToken || !accessToken.startsWith('acst:')) return;
 
     const accessDataStr = await redis.get(accessToken);
     if (!accessDataStr) {
