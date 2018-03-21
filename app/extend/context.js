@@ -108,29 +108,31 @@ module.exports = {
     const { logger, app } = this;
     const { redis } = app;
 
-    props.maxAge = props.maxAge || maxAge || ms(this.app.config.accessToken.maxAge);
-
-    if (maxAge !== undefined) {
-      maxAge = ms(this.app.config.accessToken.maxAge);
-    }
+    props.maxAge = ms(props.maxAge || maxAge || this.app.config.accessToken.maxAge);
 
     const accessData = new AccessData(this, props);
 
-    await redis.set(accessData.accessToken, JSON.stringify(accessData.toJSON()), 'EX', props.maxAge * 0.001);
+    await redis.set(accessData.accessToken, JSON.stringify(accessData.toJSON()), 'EX', accessData.maxAge * 0.001);
 
-    logger.info(`redis 创建 accessData ( ${accessData.id} )数据 accessToken: ${accessData.accessToken} 有效期 ${props.maxAge}`);
+    logger.info(`redis 创建 accessData ( ${accessData.id} )数据 accessToken: ${accessData.accessToken} 有效期 ${accessData.maxAge}`);
 
     return accessData;
   },
 
-  async saveAccessData(accessData) {
+  async saveAccessData(accessData, maxAge) {
     const { app } = this;
     const { redis } = app;
 
     accessData = accessData || this.accessData;
+    if (!accessData) return;
 
-    if (accessData && accessData.requireSave) {
-      await redis.set(accessData.accessToken, JSON.stringify(accessData.toJSON()));
+    if (maxAge !== undefined) {
+      accessData._requireSave = true;
+      accessData.maxAge = ms(maxAge);
+    }
+
+    if (accessData._requireSave) {
+      await redis.set(accessData.accessToken, JSON.stringify(accessData.toJSON()), 'EX', accessData.maxAge * 0.001);
     }
   },
 
@@ -139,11 +141,7 @@ module.exports = {
     const { redis } = app;
 
     if (!accessToken) return;
-
-    if (maxAge !== undefined) {
-      maxAge = ms(this.app.config.accessToken.maxAge);
-    }
-
+    maxAge = ms(maxAge || this.app.config.accessToken.maxAge || '5s');
     await redis.expire(accessToken, maxAge * 0.001);
   },
 
