@@ -239,7 +239,7 @@ module.exports = {
 
     const prefix = this.app.config.redis.client.keyPrefix;
     const prefixLen = prefix.length;
-    const keys = await redis.keys(`${prefix}acst:${id}:*`);
+    let keys = await redis.keys(`${prefix}acst:${id}:*`);
     if (!keys || keys.length === 0) return;
 
     keys = keys.map(key => {
