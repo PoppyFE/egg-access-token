@@ -52,8 +52,6 @@ module.exports = opts => {
       return;
     }
 
-    if (accessData._)
-
     ctx.accessData = request.accessData = accessData;
 
     await next();
