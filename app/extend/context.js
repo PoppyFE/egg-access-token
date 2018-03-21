@@ -43,7 +43,7 @@ class AccessData {
      createAt: this.createAt,
    };
 
-   this.accessToken = crypto.createHash('md5').update(JSON.stringify(hashContent)).digest('hex');
+   this.accessToken = 'acst:' + this.id + ':' +crypto.createHash('md5').update(JSON.stringify(hashContent)).digest('hex');
  }
 
  toJSON() {
@@ -116,7 +116,7 @@ module.exports = {
 
     const accessData = new AccessData(this, props);
 
-    await redis.set(accessData.accessToken, accessData.toJSON(), 'EX', props.maxAge * 0.001);
+    await redis.set(accessData.accessToken, JSON.stringify(accessData.toJSON()), 'EX', props.maxAge * 0.001);
 
     logger.info(`redis 创建 accessData ( ${accessData.id} )数据 accessToken: ${accessData.accessToken} 有效期 ${props.maxAge}`);
 
@@ -151,7 +151,7 @@ module.exports = {
     const { logger, app } = this;
     const { redis } = app;
 
-    if (!accessToken) return;
+    if (!accessToken || accessToken.startsWith('acst')) return;
 
     const accessDataStr = await redis.get(accessToken);
     if (!accessDataStr) {
@@ -183,7 +183,7 @@ module.exports = {
 
     if (!id) return results;
 
-    const keys = await redis.keys(id + ':ses:*');
+    const keys = await redis.keys(`acst:${id}:*`);
     if (!keys || keys.length === 0) return results;
 
     for(let i = 0 ; i < keys.length; i++) {
@@ -202,7 +202,7 @@ module.exports = {
 
     if (!id) return [];
 
-    const keys = await redis.keys(id + ':ses:*');
+    const keys = await redis.keys(`acst:${id}:*`);
     return keys || [];
   },
 
@@ -222,7 +222,7 @@ module.exports = {
 
     if (!id) return;
 
-    const keys = await redis.keys(id + ':ses:*');
+    const keys = await redis.keys(`acst:${id}:*`);
     if (!keys || keys.length === 0) return;
 
     for(let i = 0 ; i < keys.length; i++) {
