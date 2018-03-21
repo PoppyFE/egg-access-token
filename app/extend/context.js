@@ -25,25 +25,44 @@ class AccessData {
       throw new Error('AccessData maxAge is empty!');
     }
 
-    this.clientMac = getClientMac(ctx);
-    this.random = uuid();
+    if (!this.clientMac) {
+      this.clientMac = getClientMac(ctx);
+    }
+
+    if (!this.random) {
+      this.random = uuid();
+    }
+
+    if (!this.ip) {
+      this.ip = ctx.ip;
+    }
+
     const timeStamp = new Date().getTime();
 
-    this.ip = ctx.ip;
-    this.createAt = timeStamp;
-    this.updateAt = timeStamp;
+    if (!this.createAt) {
+      this.createAt = timeStamp;
+    }
 
-    this.isDead = false;
-    this.message = undefined;
+    if (!this.updateAt) {
+      this.updateAt = timeStamp;
+    }
 
-    const hashContent = {
-      id: this.id,
-      clientMac: this.clientMac,
-      random: this.random,
-      createAt: this.createAt,
-    };
+    if (!props.hasOwnProperty('isDead')) {
+      this.isDead = false;
+    }
 
-    this.accessToken = 'acst:' + this.id + ':' +crypto.createHash('md5').update(JSON.stringify(hashContent)).digest('hex');
+    // this.message = undefined;
+
+    if (!this.accessToken) {
+      const hashContent = {
+        id: this.id,
+        clientMac: this.clientMac,
+        random: this.random,
+        createAt: this.createAt,
+      };
+
+      this.accessToken = 'acst:' + this.id + ':' +crypto.createHash('md5').update(JSON.stringify(hashContent)).digest('hex');
+    }
   }
 
   toJSON() {
