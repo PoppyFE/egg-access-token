@@ -108,7 +108,7 @@ class AccessData {
 
     await redis.set(this.accessToken, JSON.stringify(this.toJSON()), 'EX', this.maxAge * 0.001);
     logger.info(`redis 创建 accessData ( ${this.id} )数据 accessToken: ${this.accessToken} 有效期 ${this.maxAge}`);
-    this._dataDirty = true;
+    this._dataDirty = false;
   }
 
   async active() {
