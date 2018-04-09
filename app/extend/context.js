@@ -226,6 +226,11 @@ module.exports = {
 
     if (!accessToken) return;
 
+    const accessData = this.accessData || this.request.accessData;
+    if (accessData && accessData.accessToken === accessToken) {
+      this.accessData = this.request.accessData = null;
+    }
+
     await redis.del(accessToken);
 
     logger.info(`删除 accessToken: ${accessToken} !`);
