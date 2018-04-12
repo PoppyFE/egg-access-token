@@ -34,8 +34,14 @@ module.exports = opts => {
     // 有access-token
     let accessData = await ctx.findAccessData(accessToken);
     if (!accessData) {
-      logger.info(`access-token: ${accessToken} 已经失效！`);
-      ctx.formatFailResp({errCode: 'F401'});
+      if (force) {
+        logger.info(`access-token: ${accessToken} 已经失效！`);
+        ctx.formatFailResp({errCode: 'F401'});
+        return;
+      }
+
+      logger.info(`若 access-token: 无效 忽律 继续`);
+      await next();
       return;
     }
 
