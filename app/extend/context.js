@@ -123,7 +123,7 @@ function getClientMac(ctx) {
   const deviceUUID = request.headers['device-uuid'] || '';
 
   let ipAddress = '';
-  if (!deviceUUID && config.limitRequest.ipEnable) {
+  if (!deviceUUID && this.app.config.limitRequest.ipEnable) {
     ipAddress = (ctx.ips && ctx.ips.length ? ctx.ips.join('-') : undefined) || ctx.ip || '';
   }
 
