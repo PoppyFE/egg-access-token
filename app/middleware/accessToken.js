@@ -21,7 +21,7 @@ module.exports = opts => {
 
     if (force && !accessToken) {
       logger.info('access-token 未设置！');
-      ctx.formatFailResp({errCode: 'F403'});
+      ctx.formatFailResp({errCode: 'F401'});
       return;
     }
 
