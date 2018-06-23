@@ -1,5 +1,7 @@
 'use strict';
 
+const paramsSign = require('params-sign');
+
 module.exports = opts => {
 
   // force default is force.
@@ -43,6 +45,22 @@ module.exports = opts => {
       logger.info(`若 access-token: 无效 忽律 继续`);
       await next();
       return;
+    }
+
+    if (opts.sign) {
+      const accessSign = request.headers['access-sign'] || query['access-sign'];
+      if (!accessSign) {
+        logger.info('access-sign 未设置！');
+        ctx.formatFailResp({errCode: 'F401'});
+        return;
+      }
+
+      const requestParams = (ctx.method === 'GET' ? ctx.query : ctx.request.body) || {};
+      if (!paramsSign.checkSign(requestParams, accessData.random, accessSign, opts.checkSignOpts || {})) {
+        logger.info(`accessSign: ${accessSign} 验签失败！`);
+        ctx.formatFailResp({errCode: 'F403'});
+        return;
+      }
     }
 
     if (accessData.isDead) { // 这里是个即将删除的token
