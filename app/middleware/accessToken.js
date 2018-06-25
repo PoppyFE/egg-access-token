@@ -2,17 +2,17 @@
 
 const paramsSign = require('params-sign');
 
-module.exports = opts => {
+module.exports = (opts = {}) => {
 
   // force default is force.
   let force = true;
-  if (opts && opts.force !== undefined) {
+  if (opts.force !== undefined) {
     force = !!opts.force;
   }
 
   // keepActive default is true
   let keepActive = true;
-  if (opts && opts.keepActive !== undefined) {
+  if (opts.keepActive !== undefined) {
     keepActive = !!opts.keepActive;
   }
 
