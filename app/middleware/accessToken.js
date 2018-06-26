@@ -51,11 +51,11 @@ module.exports = (opts = {}) => {
       const accessSign = request.headers['access-sign'] || query['access-sign'];
       if (!accessSign) {
         logger.info('access-sign 未设置！');
-        ctx.formatFailResp({errCode: 'F401'});
+        ctx.formatFailResp({errCode: 'F403'});
         return;
       }
 
-      const requestParams = (ctx.method === 'GET' ? ctx.query : ctx.request.body) || {};
+      const requestParams = (ctx.method === 'GET' ? query : request.body) || {};
       const checkSignOpts = Object.assign({
         ignoreKeys: {
           'access-sign': true,
