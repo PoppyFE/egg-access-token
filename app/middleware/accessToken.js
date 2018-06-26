@@ -56,8 +56,18 @@ module.exports = (opts = {}) => {
       }
 
       const requestParams = (ctx.method === 'GET' ? ctx.query : ctx.request.body) || {};
-      if (!paramsSign.checkSign(requestParams, accessData.random, accessSign, opts.checkSignOpts || {})) {
-        logger.info(`accessSign: ${accessSign} 验签失败！`);
+      const checkSignOpts = Object.assign({
+        ignoreKeys: {
+          'access-sign': true,
+          'access-token': true,
+          'auth-token': true,
+        },
+      }, opts.checkSignOpts);
+
+      const checkSign = paramsSign.sign(requestParams, accessData.random, checkSignOpts);
+
+      if (checkSign !== accessSign) {
+        logger.info(`验签失败！应该是 ${checkSign} 实际是 ${accessSign} `);
         ctx.formatFailResp({errCode: 'F403'});
         return;
       }
