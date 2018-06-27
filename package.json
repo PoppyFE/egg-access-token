@@ -12,7 +12,7 @@
   ],
   "dependencies": {
     "ms": "^2.1.1",
-    "params-sign": "^1.0.6",
+    "params-sign": "^1.0.7",
     "uuid": "^3.2.1"
   },
   "devDependencies": {
