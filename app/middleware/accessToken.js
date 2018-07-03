@@ -19,7 +19,7 @@ module.exports = (opts = {}) => {
   return async function (ctx, next) {
     const { logger, request, query } = ctx;
     // access-token 优先headers 然后query
-    const accessToken = request.headers['access-token'] || query['access-token'];
+    const accessToken = request.headers['access-token'] || request.body.access_token || query.access_token;
 
     if (force && !accessToken) {
       logger.info('access-token 未设置！');
