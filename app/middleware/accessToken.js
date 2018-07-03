@@ -75,7 +75,7 @@ module.exports = (opts = {}) => {
 
     if (accessData.isDead) { // 这里是个即将删除的token
       logger.info(`access-token: ${accessToken} 即将失效！${accessData.message}`);
-      ctx.formatFailResp({errCode: 'F401', msg: accessData.message});
+      ctx.formatFailResp({errCode: 'F401-0', msg: accessData.message});
       await ctx.destroyAccessData(accessData.accessToken);
       return;
     }
