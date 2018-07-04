@@ -58,9 +58,7 @@ module.exports = (opts = {}) => {
       const requestParams = (ctx.method === 'GET' ? query : request.body) || {};
       const checkSignOpts = Object.assign({
         ignoreKeys: {
-          'access-sign': true,
-          'access-token': true,
-          'auth-token': true,
+          'access-sign': true
         },
       }, opts.checkSignOpts);
 
