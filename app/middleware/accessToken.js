@@ -48,7 +48,7 @@ module.exports = (opts = {}) => {
     }
 
     if (opts.sign) {
-      const accessSign = request.headers['access-sign'] || query['access-sign'];
+      const accessSign = request.headers['access-sign'] || request.body['access-sign'] || query['access-sign'];
       if (!accessSign) {
         logger.info('access-sign 未设置！');
         ctx.formatFailResp({errCode: 'F403'});
