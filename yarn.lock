@@ -4630,9 +4630,9 @@ param-case@^2.1.0:
   dependencies:
     no-case "^2.2.0"
 
-params-sign@^1.0.7:
-  version "1.0.7"
-  resolved "https://registry.yarnpkg.com/params-sign/-/params-sign-1.0.7.tgz#834d84d9b0086ab26a8671bed0a81f8cdd0388e6"
+params-sign@^1.0.9:
+  version "1.0.9"
+  resolved "https://registry.yarnpkg.com/params-sign/-/params-sign-1.0.9.tgz#e0765e4230d7ac07ea17fe0ad66faf240966bf9d"
   dependencies:
     md5 "^2.2.1"
 
