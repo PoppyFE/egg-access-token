@@ -7,7 +7,7 @@ module.exports = (opts = {}) => {
   // force default is force.
   let force = true;
   if (opts.force !== undefined) {
-    force = !!opts.force;
+    force = opts.force;
   }
 
   // keepActive default is true
@@ -21,7 +21,12 @@ module.exports = (opts = {}) => {
     // access-token 优先headers 然后query
     const accessToken = request.headers['access-token'] || request.body.access_token || query.access_token;
 
-    if (force && !accessToken) {
+    let isNeedForceAccessToken = !!force;
+    if (typeof force === 'function') {
+      isNeedForceAccessToken = force(ctx);
+    }
+
+    if (isNeedForceAccessToken && !accessToken) {
       logger.info('access-token 未设置！');
       ctx.formatFailResp({errCode: 'F401'});
       return;
@@ -36,7 +41,7 @@ module.exports = (opts = {}) => {
     // 有access-token
     let accessData = await ctx.findAccessData(accessToken);
     if (!accessData) {
-      if (force) {
+      if (isNeedForceAccessToken) {
         logger.info(`access-token: ${accessToken} 已经失效！`);
         ctx.formatFailResp({errCode: 'F401'});
         return;
