@@ -83,7 +83,7 @@ module.exports = (opts = {}) => {
       return;
     }
 
-    if (accessData.isClientMacChanged()) { // 这里可能是盗用 token
+    if (opts.checkClientMac && accessData.isClientMacChanged()) { // 这里可能是盗用 token
       logger.info(`access-token: ${accessToken} 对应的环境发生变化！`);
       ctx.formatFailResp({errCode: 'F403'});
       return;

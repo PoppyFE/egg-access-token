@@ -1,5 +1,6 @@
 'use strict';
 
 module.exports.accessToken = {
-  maxAge: '10m'
+  maxAge: '10m',
+  checkClientMac: true
 };

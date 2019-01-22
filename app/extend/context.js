@@ -139,7 +139,8 @@ module.exports = {
     const { logger, app } = this;
     const { redis } = app;
 
-    props.maxAge = ms(props.maxAge || maxAge || this.app.config.accessToken.maxAge);
+    props.maxAge = props.maxAge || maxAge || this.app.config.accessToken.maxAge;
+    props.maxAge = typeof props.maxAge === 'string' ? ms(props.maxAge) : (parseInt(props.maxAge) || 0);
 
     const accessData = new AccessData(this, props);
     await accessData.save(true);
