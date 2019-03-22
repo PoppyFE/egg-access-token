@@ -2,5 +2,7 @@
 
 module.exports.accessToken = {
   maxAge: '10m',
-  checkClientMac: true
+  checkClientMac: true,
+  keepActive: true,
+  force: true,
 };

@@ -3,23 +3,13 @@
 const paramsSign = require('params-sign');
 
 module.exports = (opts = {}) => {
-
-  // force default is force.
-  let force = true;
-  if (opts.force !== undefined) {
-    force = opts.force;
-  }
-
-  // keepActive default is true
-  let keepActive = true;
-  if (opts.keepActive !== undefined) {
-    keepActive = !!opts.keepActive;
-  }
-
   return async function (ctx, next) {
     const { logger, request, query } = ctx;
     // access-token 优先headers 然后query
     const accessToken = request.headers['access-token'] || request.body.access_token || query.access_token;
+
+    opts = Object.assign({}, ctx.app.config.accessToken, opts);
+    const { force, keepActive } = opts;
 
     let isNeedForceAccessToken = !!force;
     if (typeof force === 'function') {
