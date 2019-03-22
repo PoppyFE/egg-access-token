@@ -85,6 +85,7 @@ class AccessData {
   isClientMacChanged() {
     const { logger } = this._ctx;
     const envClientMac = getClientMac(this._ctx);
+
     if (envClientMac !== this.clientMac) {
       return true;
     }
